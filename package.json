@@ -1,0 +1,35 @@
+{
+  "name": "cs391-project-2",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:next dev:server",
+    "all": "npm-run-all --parallel dev:next dev:server",
+    "dev:next": "next dev",
+    "dev:server": "json-server --watch db.json --port 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "autoprefixer": "^10.4.21",
+    "axios": "^1.6.0",
+    "bootstrap": "^5.3.2",
+    "json-server": "^0.17.4",
+    "next": "^15.3.2",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.5.3",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.9.1",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.15",
+    "eslint": "^8.53.0",
+    "eslint-config-next": "^14.0.1"
+  }
+}
