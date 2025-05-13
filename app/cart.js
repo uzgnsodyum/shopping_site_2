@@ -12,6 +12,7 @@ export default function Cart() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [specialNotes, setSpecialNotes] = useState({});
+  const [showPaymentMessage, setShowPaymentMessage] = useState(false);  // Track payment success message visibility
 
   // Calculate delivery fee and total
   const deliveryFee = totalAmount < 1000 ? 50 : 0;
@@ -42,10 +43,11 @@ export default function Cart() {
   };
 
   const handlePayment = async () => {
-    await emptyCart();
-    setPaymentComplete(true);
-    setShowCheckout(false);
-    setSpecialNotes({});
+    await emptyCart();  // Empty the cart after payment
+    setPaymentComplete(true);  // Mark payment as complete
+    setShowCheckout(false);  // Hide the checkout modal
+    setSpecialNotes({});  // Clear any special notes
+    setShowPaymentMessage(true);  // Show the success message
   };
 
   const handleCloseCheckout = () => {
@@ -54,6 +56,7 @@ export default function Cart() {
 
   const handleBackToShopping = () => {
     setPaymentComplete(false);
+    setShowPaymentMessage(false);  // Hide the success message when returning to shopping
   };
 
   return (
@@ -169,6 +172,7 @@ export default function Cart() {
                         Empty Cart
                       </Button>
                       
+
                       <Link href="/" passHref>
                         <Button variant="outline-primary">
                           Continue Shopping
@@ -185,25 +189,32 @@ export default function Cart() {
                     <h5 className="mb-0">Order Summary</h5>
                   </Card.Header>
                   <Card.Body>
+                    {/* Display Total Price */}
                     <div className="d-flex justify-content-between mb-2">
-                      <span>Subtotal</span>
+                      <span>Total Price</span>
                       <span>${totalAmount.toFixed(2)}</span>
                     </div>
+                    
+                    {/* Display Delivery Fee */}
                     <div className="d-flex justify-content-between mb-2">
                       <span>Delivery Fee</span>
                       <span>${deliveryFee.toFixed(2)}</span>
                     </div>
+
+                    {/* If delivery is applicable */}
                     {deliveryFee > 0 && (
                       <small className="text-muted mb-3 d-block">
                         Free delivery for orders over $1,000
                       </small>
                     )}
                     <hr />
+                    
+                    {/* Display Final Total */}
                     <div className="d-flex justify-content-between mb-4">
-                      <span className="fw-bold">Total</span>
+                      <span className="fw-bold">Total Amount</span>
                       <span className="fw-bold">${totalWithDelivery.toFixed(2)}</span>
                     </div>
-                    
+
                     <Button 
                       variant="success" 
                       className="w-100"

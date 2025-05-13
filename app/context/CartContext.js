@@ -1,4 +1,3 @@
-// filepath: /Users/ulasbaran/courses/cs391/shopping_site_2/app/context/CartContext.js
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
@@ -31,6 +30,23 @@ export const CartProvider = ({ children }) => {
     setTotalAmount(total);
   }, [cart]);
 
+  // Update quantity of a specific cart item
+  const updateCartItem = async (itemId, quantity, specialNote) => {
+    try {
+      // Call the API to update the cart item
+      await api.updateCartItem(itemId, { quantity, specialNote });
+
+      // Update the cart state locally
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.id === itemId ? { ...item, quantity, specialNote } : item
+        )
+      );
+    } catch (error) {
+      console.error("Error updating item in cart:", error);
+    }
+  };
+
   const addToCart = async (product, quantity, specialNote) => {
     try {
       await api.addToCart({ ...product, quantity, specialNote });
@@ -62,7 +78,16 @@ export const CartProvider = ({ children }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cart, totalAmount, addToCart, removeFromCart, emptyCart }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        totalAmount,
+        addToCart,
+        removeFromCart,
+        emptyCart,
+        updateCartItem, // Provide the updateCartItem function
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
