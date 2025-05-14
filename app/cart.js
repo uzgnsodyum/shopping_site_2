@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { Row, Col, Card, Table, Button, Form, Alert, Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -6,7 +6,7 @@ import { faTrash, faShoppingCart, faCreditCard } from '@fortawesome/free-solid-s
 import Link from 'next/link';
 import { useCart } from './context/CartContext';
 
-export default function Cart() {
+export default function Cart({ campaigns }) {  // Pass campaigns as a prop
   const { cart, totalAmount, updateCartItem, removeFromCart, emptyCart } = useCart();
   
   const [showCheckout, setShowCheckout] = useState(false);
@@ -18,6 +18,26 @@ export default function Cart() {
   // Calculate delivery fee and total
   const deliveryFee = totalAmount < 1000 ? 50 : 0;
   const totalWithDelivery = totalAmount + deliveryFee;
+
+  // Apply discounts to products in cart
+  const applyDiscounts = () => {
+    return cart.map(item => {
+      // Check if the item is part of any active campaign
+      let itemDiscount = item.price;  // Start with the original price
+
+      campaigns.forEach(campaign => {
+        if (campaign.products.includes(item.id)) {
+          // Apply the discount percentage from the campaign
+          itemDiscount = item.price - (item.price * campaign.discountPercentage / 100);
+        }
+      });
+
+      return {
+        ...item,
+        discountedPrice: itemDiscount.toFixed(2), // Store the discounted price
+      };
+    });
+  };
 
   const handleQuantityChange = async (itemId, quantity) => {
     await updateCartItem(itemId, parseInt(quantity), specialNotes[itemId]);
@@ -43,18 +63,14 @@ export default function Cart() {
     setShowCheckout(true);
   };
 
-  
-
   const handlePayment = async () => {
-  // Simulating payment process and then completing it
-  await emptyCart(); // Empty the cart after payment
-  setPaymentComplete(true); // Mark payment as complete
-  console.log("Payment Complete:", paymentComplete);  // Log to check if it is set correctly
-  setShowCheckout(false);  // Hide the checkout modal
-  setSpecialNotes({});  // Clear any special notes
-  setShowPaymentMessage(true);  // Show the success message
-};
-
+    await emptyCart(); // Empty the cart after payment
+    setPaymentComplete(true); // Mark payment as complete
+    console.log("Payment Complete:", paymentComplete);
+    setShowCheckout(false); // Hide the checkout modal
+    setSpecialNotes({}); // Clear any special notes
+    setShowPaymentMessage(true); // Show the success message
+  };
 
   const handleCloseCheckout = () => {
     setShowCheckout(false);
@@ -62,7 +78,7 @@ export default function Cart() {
 
   const handleBackToShopping = () => {
     setPaymentComplete(false);
-    setShowPaymentMessage(false);  // Hide the success message when returning to shopping
+    setShowPaymentMessage(false); // Hide the success message when returning to shopping
   };
 
   const handleReviewChange = (itemId, field, value) => {
@@ -78,7 +94,6 @@ export default function Cart() {
   const handleReviewSubmit = (itemId) => {
     const reviewData = reviews[itemId];
     console.log("Review Submitted for Item:", itemId, reviewData);
-    // Here you can make an API call to submit the review data to the backend
   };
 
   return (
@@ -102,7 +117,7 @@ export default function Cart() {
           {/* Review Section after Proceeding to Checkout */}
           <div className="review-section mt-5">
             <h3>Write Reviews for Your Purchased Items</h3>
-            {cart.map((item) => (
+            {applyDiscounts().map((item) => (
               <Card key={item.id} className="mb-3">
                 <Card.Body>
                   <h5>{item.title}</h5>
@@ -183,7 +198,7 @@ export default function Cart() {
                         </tr>
                       </thead>
                       <tbody>
-                        {cart.map(item => (
+                        {applyDiscounts().map(item => (
                           <tr key={item.id}>
                             <td>
                               <div className="d-flex align-items-center">
@@ -212,7 +227,7 @@ export default function Cart() {
                                 </div>
                               </div>
                             </td>
-                            <td>${item.price.toFixed(2)}</td>
+                            <td>${item.discountedPrice}</td> {/* Display discounted price */}
                             <td>
                               <Form.Control
                                 type="number"
@@ -223,7 +238,7 @@ export default function Cart() {
                                 style={{ width: '70px' }}
                               />
                             </td>
-                            <td>${(item.price * item.quantity).toFixed(2)}</td>
+                            <td>${(item.discountedPrice * item.quantity).toFixed(2)}</td>
                             <td>
                               <Button 
                                 variant="outline-danger" 
@@ -290,4 +305,3 @@ export default function Cart() {
     </>
   );
 }
-
