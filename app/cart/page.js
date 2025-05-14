@@ -1,8 +1,17 @@
+
+
+
+// CartPage.js
 "use client";
 
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
-import { Container, Table, Button, Alert } from "react-bootstrap";
+import { Container, Table, Button, Alert, Form, Card } from "react-bootstrap";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faStar } from '@fortawesome/free-solid-svg-icons';
+import PaymentSuccess from "../components/PaymentSuccess";
+import ReviewsSection from "../components/ReviewsSection";
+
 
 const CartPage = () => {
   const { cart, totalAmount, removeFromCart, emptyCart, updateCartItem } = useCart();
@@ -12,6 +21,7 @@ const CartPage = () => {
   const totalWithDelivery = totalAmount + deliveryFee;
 
   const [paymentComplete, setPaymentComplete] = useState(false);
+  const [reviews, setReviews] = useState({}); // Track review data
 
   // Handle quantity change
   const handleQuantityChange = (itemId, quantity) => {
@@ -24,20 +34,30 @@ const CartPage = () => {
     setPaymentComplete(true); // Show success message after payment
   };
 
+  // Handle review change for each product
+  const handleReviewChange = (itemId, field, value) => {
+    setReviews((prevReviews) => ({
+      ...prevReviews,
+      [itemId]: {
+        ...prevReviews[itemId],
+        [field]: value,
+      },
+    }));
+  };
+
+  // Submit review (API call can be made here)
+  const handleReviewSubmit = (itemId) => {
+    const reviewData = reviews[itemId];
+    console.log("Review Submitted for Item:", itemId, reviewData);
+    // Here you can make an API call to submit the review data to the backend
+  };
+
   return (
     <Container>
       <h1 className="mb-4">Shopping Cart</h1>
 
       {paymentComplete ? (
-        <div className="text-center my-5">
-          <Alert variant="success" className="mb-4">
-            <h4>Payment Successful!</h4>
-            <p>Thank you for your purchase. Your order has been placed successfully.</p>
-          </Alert>
-          <Button variant="primary" onClick={() => setPaymentComplete(false)}>
-            Continue Shopping
-          </Button>
-        </div>
+        <PaymentSuccess onContinueShopping={() => setPaymentComplete(false)} />
       ) : (
         <>
           {cart.length === 0 ? (
@@ -106,6 +126,14 @@ const CartPage = () => {
               <Button variant="warning" onClick={emptyCart} className="mt-2">
                 Empty Cart
               </Button>
+
+              {/* Review Section after Proceeding to Checkout */}
+              <ReviewsSection
+                cart={cart}
+                reviews={reviews}
+                onReviewChange={handleReviewChange}
+                onReviewSubmit={handleReviewSubmit}
+              />
             </>
           )}
         </>

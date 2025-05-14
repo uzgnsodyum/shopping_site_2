@@ -8,12 +8,12 @@ import { useCart } from './context/CartContext';
 
 export default function Cart() {
   const { cart, totalAmount, updateCartItem, removeFromCart, emptyCart } = useCart();
-
+  
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [specialNotes, setSpecialNotes] = useState({});
   const [reviews, setReviews] = useState({});  // Track review data
-  const [showPaymentMessage, setShowPaymentMessage] = useState(false);
+  const [showPaymentMessage, setShowPaymentMessage] = useState(false);  // Track payment success message visibility
 
   // Calculate delivery fee and total
   const deliveryFee = totalAmount < 1000 ? 50 : 0;
@@ -43,13 +43,18 @@ export default function Cart() {
     setShowCheckout(true);
   };
 
+  
+
   const handlePayment = async () => {
-    await emptyCart();
-    setPaymentComplete(true);
-    setShowCheckout(false);
-    setSpecialNotes({});
-    setShowPaymentMessage(true);
-  };
+  // Simulating payment process and then completing it
+  await emptyCart(); // Empty the cart after payment
+  setPaymentComplete(true); // Mark payment as complete
+  console.log("Payment Complete:", paymentComplete);  // Log to check if it is set correctly
+  setShowCheckout(false);  // Hide the checkout modal
+  setSpecialNotes({});  // Clear any special notes
+  setShowPaymentMessage(true);  // Show the success message
+};
+
 
   const handleCloseCheckout = () => {
     setShowCheckout(false);
@@ -57,7 +62,7 @@ export default function Cart() {
 
   const handleBackToShopping = () => {
     setPaymentComplete(false);
-    setShowPaymentMessage(false);
+    setShowPaymentMessage(false);  // Hide the success message when returning to shopping
   };
 
   const handleReviewChange = (itemId, field, value) => {
@@ -93,6 +98,58 @@ export default function Cart() {
           <Button variant="primary" onClick={handleBackToShopping}>
             Continue Shopping
           </Button>
+
+          {/* Review Section after Proceeding to Checkout */}
+          <div className="review-section mt-5">
+            <h3>Write Reviews for Your Purchased Items</h3>
+            {cart.map((item) => (
+              <Card key={item.id} className="mb-3">
+                <Card.Body>
+                  <h5>{item.title}</h5>
+                  {/* Rating */}
+                  <div className="star-rating">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FontAwesomeIcon
+                        key={star}
+                        icon="star"
+                        className={star <= reviews[item.id]?.rating ? "star selected" : "star"}
+                        onClick={() => handleReviewChange(item.id, "rating", star)}
+                      />
+                    ))}
+                  </div>
+                  <Form.Group>
+                    <Form.Label>Review Title</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="Enter title"
+                      value={reviews[item.id]?.title || ""}
+                      onChange={(e) =>
+                        handleReviewChange(item.id, "title", e.target.value)
+                      }
+                    />
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Label>Review</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      placeholder="Write your review"
+                      value={reviews[item.id]?.review || ""}
+                      onChange={(e) =>
+                        handleReviewChange(item.id, "review", e.target.value)
+                      }
+                    />
+                  </Form.Group>
+                  <Button
+                    onClick={() => handleReviewSubmit(item.id)}
+                    className="submit-button mt-2"
+                  >
+                    Submit Review
+                  </Button>
+                </Card.Body>
+              </Card>
+            ))}
+          </div>
         </div>
       ) : (
         <>
@@ -197,31 +254,24 @@ export default function Cart() {
                   </Card.Body>
                 </Card>
               </Col>
-
               <Col lg={4}>
                 <Card className="shadow-sm mb-4">
                   <Card.Header className="bg-white py-3">
                     <h5 className="mb-0">Order Summary</h5>
                   </Card.Header>
                   <Card.Body>
-                    {/* Display Total Price */}
                     <div className="d-flex justify-content-between mb-2">
                       <span>Total Price</span>
                       <span>${totalAmount.toFixed(2)}</span>
                     </div>
-
-                    {/* Display Delivery Fee */}
                     <div className="d-flex justify-content-between mb-2">
                       <span>Delivery Fee</span>
                       <span>${deliveryFee.toFixed(2)}</span>
                     </div>
-
-                    {/* Display Final Total */}
                     <div className="d-flex justify-content-between mb-4">
                       <span className="fw-bold">Total Amount</span>
                       <span className="fw-bold">${totalWithDelivery.toFixed(2)}</span>
                     </div>
-
                     <Button 
                       variant="success" 
                       className="w-100"
@@ -237,52 +287,7 @@ export default function Cart() {
           )}
         </>
       )}
-
-      {/* Review Section after Proceeding to Checkout */}
-      {showCheckout && (
-        <div>
-          <h3>Write Reviews for Your Purchased Items</h3>
-          {cart.map((item) => (
-            <Card key={item.id} className="mb-3">
-              <Card.Body>
-                <h5>{item.title}</h5>
-                {/* Rating */}
-                <div>
-                  <span>Rate this product:</span>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <FontAwesomeIcon 
-                      key={star} 
-                      icon="star" 
-                      style={{ color: star <= reviews[item.id]?.rating ? 'gold' : 'gray' }}
-                      onClick={() => handleReviewChange(item.id, 'rating', star)}
-                    />
-                  ))}
-                </div>
-                <Form.Group>
-                  <Form.Label>Review Title</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter title"
-                    value={reviews[item.id]?.title || ''}
-                    onChange={(e) => handleReviewChange(item.id, 'title', e.target.value)}
-                  />
-                </Form.Group>
-                <Form.Group>
-                  <Form.Label>Review</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    placeholder="Write your review"
-                    value={reviews[item.id]?.review || ''}
-                    onChange={(e) => handleReviewChange(item.id, 'review', e.target.value)}
-                  />
-                </Form.Group>
-                <Button onClick={() => handleReviewSubmit(item.id)} className="mt-2">Submit Review</Button>
-              </Card.Body>
-            </Card>
-          ))}
-        </div>
-      )}
     </>
   );
 }
+

@@ -27,3 +27,53 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* Styling for the review section */
+.review-section {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 30px;
+}
+
+.review-section h3 {
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+.review-section .star-rating {
+  display: flex;
+  gap: 5px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.review-section .star-rating .star {
+  color: gray;
+}
+
+.review-section .star-rating .star.selected {
+  color: gold;
+}
+
+.review-section .form-group {
+  margin-top: 15px;
+}
+
+.review-section .form-control {
+  font-size: 14px;
+  padding: 8px;
+}
+
+.review-section .submit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 10px;
+  border-radius: 5px;
+}
+
+.review-section .submit-button:hover {
+  background-color: #0056b3;
+}
