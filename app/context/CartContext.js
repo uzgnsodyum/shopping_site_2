@@ -10,6 +10,7 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [reviews, setReviews] = useState({}); // Track reviews for items in cart
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -33,10 +34,7 @@ export const CartProvider = ({ children }) => {
   // Update quantity of a specific cart item
   const updateCartItem = async (itemId, quantity, specialNote) => {
     try {
-      // Call the API to update the cart item
       await api.updateCartItem(itemId, { quantity, specialNote });
-
-      // Update the cart state locally
       setCart((prevCart) =>
         prevCart.map((item) =>
           item.id === itemId ? { ...item, quantity, specialNote } : item
@@ -47,6 +45,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Add a new product to the cart
   const addToCart = async (product, quantity, specialNote) => {
     try {
       await api.addToCart({ ...product, quantity, specialNote });
@@ -59,6 +58,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Remove a product from the cart
   const removeFromCart = async (id) => {
     try {
       await api.removeFromCart(id);
@@ -68,6 +68,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Empty the entire cart
   const emptyCart = async () => {
     try {
       await api.emptyCart();
@@ -77,15 +78,36 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Update the review for a specific item
+  const updateReview = (itemId, reviewData) => {
+    setReviews((prevReviews) => ({
+      ...prevReviews,
+      [itemId]: reviewData,
+    }));
+  };
+
+  // Optionally, submit the review data to the backend
+  const submitReview = async (itemId, reviewData) => {
+    try {
+      await api.submitReview(itemId, reviewData);
+      console.log(`Review submitted for item ${itemId}`);
+    } catch (error) {
+      console.error("Error submitting review:", error);
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
         cart,
         totalAmount,
+        reviews, // Provide reviews state
         addToCart,
         removeFromCart,
         emptyCart,
-        updateCartItem, // Provide the updateCartItem function
+        updateCartItem,
+        updateReview, // Provide review update function
+        submitReview, // Provide submit review function
       }}
     >
       {children}

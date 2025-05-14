@@ -8,11 +8,12 @@ import { useCart } from './context/CartContext';
 
 export default function Cart() {
   const { cart, totalAmount, updateCartItem, removeFromCart, emptyCart } = useCart();
-  
+
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [specialNotes, setSpecialNotes] = useState({});
-  const [showPaymentMessage, setShowPaymentMessage] = useState(false);  // Track payment success message visibility
+  const [reviews, setReviews] = useState({});  // Track review data
+  const [showPaymentMessage, setShowPaymentMessage] = useState(false);
 
   // Calculate delivery fee and total
   const deliveryFee = totalAmount < 1000 ? 50 : 0;
@@ -43,11 +44,11 @@ export default function Cart() {
   };
 
   const handlePayment = async () => {
-    await emptyCart();  // Empty the cart after payment
-    setPaymentComplete(true);  // Mark payment as complete
-    setShowCheckout(false);  // Hide the checkout modal
-    setSpecialNotes({});  // Clear any special notes
-    setShowPaymentMessage(true);  // Show the success message
+    await emptyCart();
+    setPaymentComplete(true);
+    setShowCheckout(false);
+    setSpecialNotes({});
+    setShowPaymentMessage(true);
   };
 
   const handleCloseCheckout = () => {
@@ -56,7 +57,23 @@ export default function Cart() {
 
   const handleBackToShopping = () => {
     setPaymentComplete(false);
-    setShowPaymentMessage(false);  // Hide the success message when returning to shopping
+    setShowPaymentMessage(false);
+  };
+
+  const handleReviewChange = (itemId, field, value) => {
+    setReviews((prevReviews) => ({
+      ...prevReviews,
+      [itemId]: {
+        ...prevReviews[itemId],
+        [field]: value,
+      }
+    }));
+  };
+
+  const handleReviewSubmit = (itemId) => {
+    const reviewData = reviews[itemId];
+    console.log("Review Submitted for Item:", itemId, reviewData);
+    // Here you can make an API call to submit the review data to the backend
   };
 
   return (
@@ -120,7 +137,7 @@ export default function Cart() {
                                   className="me-3"
                                 />
                                 <div>
-                                  <Link href={`/product/${item.productId}`}>
+                                  <Link href={`/product/${item.productId}`} passHref>
                                     <span className="fw-bold" style={{ cursor: 'pointer' }}>
                                       {item.title}
                                     </span>
@@ -163,7 +180,7 @@ export default function Cart() {
                         ))}
                       </tbody>
                     </Table>
-                    
+
                     <div className="d-flex justify-content-between mt-4">
                       <Button 
                         variant="outline-secondary"
@@ -171,8 +188,6 @@ export default function Cart() {
                       >
                         Empty Cart
                       </Button>
-                      
-
                       <Link href="/" passHref>
                         <Button variant="outline-primary">
                           Continue Shopping
@@ -182,7 +197,7 @@ export default function Cart() {
                   </Card.Body>
                 </Card>
               </Col>
-              
+
               <Col lg={4}>
                 <Card className="shadow-sm mb-4">
                   <Card.Header className="bg-white py-3">
@@ -194,21 +209,13 @@ export default function Cart() {
                       <span>Total Price</span>
                       <span>${totalAmount.toFixed(2)}</span>
                     </div>
-                    
+
                     {/* Display Delivery Fee */}
                     <div className="d-flex justify-content-between mb-2">
                       <span>Delivery Fee</span>
                       <span>${deliveryFee.toFixed(2)}</span>
                     </div>
 
-                    {/* If delivery is applicable */}
-                    {deliveryFee > 0 && (
-                      <small className="text-muted mb-3 d-block">
-                        Free delivery for orders over $1,000
-                      </small>
-                    )}
-                    <hr />
-                    
                     {/* Display Final Total */}
                     <div className="d-flex justify-content-between mb-4">
                       <span className="fw-bold">Total Amount</span>
@@ -228,47 +235,53 @@ export default function Cart() {
               </Col>
             </Row>
           )}
-          
-          {/* Checkout Modal */}
-          <Modal show={showCheckout} onHide={handleCloseCheckout} centered>
-            <Modal.Header closeButton>
-              <Modal.Title>Checkout Summary</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <p className="mb-4">Please review your order details:</p>
-              
-              <Table borderless size="sm">
-                <tbody>
-                  <tr>
-                    <td>Subtotal:</td>
-                    <td className="text-end">${totalAmount.toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>Delivery Fee:</td>
-                    <td className="text-end">${deliveryFee.toFixed(2)}</td>
-                  </tr>
-                  <tr className="fw-bold">
-                    <td>Total Amount:</td>
-                    <td className="text-end">${totalWithDelivery.toFixed(2)}</td>
-                  </tr>
-                </tbody>
-              </Table>
-              
-              <Alert variant="info" className="mt-3">
-                This is a simulation. No actual payment will be processed.
-              </Alert>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={handleCloseCheckout}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={handlePayment}>
-                <FontAwesomeIcon icon={faCreditCard} className="me-2" />
-                Complete Payment
-              </Button>
-            </Modal.Footer>
-          </Modal>
         </>
+      )}
+
+      {/* Review Section after Proceeding to Checkout */}
+      {showCheckout && (
+        <div>
+          <h3>Write Reviews for Your Purchased Items</h3>
+          {cart.map((item) => (
+            <Card key={item.id} className="mb-3">
+              <Card.Body>
+                <h5>{item.title}</h5>
+                {/* Rating */}
+                <div>
+                  <span>Rate this product:</span>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FontAwesomeIcon 
+                      key={star} 
+                      icon="star" 
+                      style={{ color: star <= reviews[item.id]?.rating ? 'gold' : 'gray' }}
+                      onClick={() => handleReviewChange(item.id, 'rating', star)}
+                    />
+                  ))}
+                </div>
+                <Form.Group>
+                  <Form.Label>Review Title</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter title"
+                    value={reviews[item.id]?.title || ''}
+                    onChange={(e) => handleReviewChange(item.id, 'title', e.target.value)}
+                  />
+                </Form.Group>
+                <Form.Group>
+                  <Form.Label>Review</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    placeholder="Write your review"
+                    value={reviews[item.id]?.review || ''}
+                    onChange={(e) => handleReviewChange(item.id, 'review', e.target.value)}
+                  />
+                </Form.Group>
+                <Button onClick={() => handleReviewSubmit(item.id)} className="mt-2">Submit Review</Button>
+              </Card.Body>
+            </Card>
+          ))}
+        </div>
       )}
     </>
   );
